@@ -21,4 +21,18 @@ public class Renderer
             Console.WriteLine();
         }
     }
+
+    public void DrawEntity(Entity entity)
+    {
+        Console.SetCursorPosition(entity.X, entity.Y);
+        Console.ForegroundColor = entity.Color;
+        Console.Write(entity.Glyph);
+        Console.ResetColor();
+    }
+
+    public void DrawUI()
+    {
+        Console.SetCursorPosition(0, Console.WindowHeight - 2);
+        Console.Write("Press Q to quit.");
+    }
 }

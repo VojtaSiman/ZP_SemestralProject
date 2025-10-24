@@ -30,4 +30,9 @@ public class World
     {
         return x >= 0 && x < Width && y >= 0 && y < Height;
     }
+
+    public bool IsPassable(int x, int y)
+    {
+        return IsInBounds(x, y) && !GetTile(x, y).IsSolid;
+    }
 }

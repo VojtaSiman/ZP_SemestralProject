@@ -1,6 +1,6 @@
 namespace zpsem;
 
-public class Player
+class Player(int x, int y, ConsoleColor color, char glyph) : Entity(x, y, color, glyph)
 {
-    
+    public Inventory Inventory = new Inventory();
 }

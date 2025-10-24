@@ -5,7 +5,6 @@ public class Game
     private World world;
     private Random random;
     private Renderer renderer;
-    private InputHandler inputHandler;
     private Player player;
     private List<NPC> npcs;
     private bool isRunning;
@@ -13,9 +12,10 @@ public class Game
     public Game()
     {
         world = new World(12, 8);
+
+        player = new Player(5, 1, ConsoleColor.DarkMagenta, '@');
         
         renderer = new Renderer();
-        inputHandler = new InputHandler();
         isRunning = true;
     }
 
@@ -34,7 +34,41 @@ public class Game
     private void ProcessInput()
     {
         var key = Console.ReadKey(true).Key;
+
+        int directionX = 0;
+        int directionY = 0;
         
+        switch (key)
+        {
+            case ConsoleKey.W:
+                // Walk up
+                directionY = -1;
+                break;
+            case ConsoleKey.S:
+                // Walk down
+                directionY = 1;
+                break;
+            case ConsoleKey.A:
+                // Walk left
+                directionX = -1;
+                break;
+            case ConsoleKey.D:
+                // Walk right
+                directionX = 1;
+                break;
+            case ConsoleKey.Q:
+            case ConsoleKey.Escape:
+                isRunning = false;
+                break;
+            case ConsoleKey.Spacebar:
+                // Wait one step
+                break;
+        }
+        
+        if (world.IsPassable(player.X + directionX, player.Y + directionY))
+        {
+            player.Move(directionX, directionY);    
+        }
     }
     
     private void Update()
@@ -46,5 +80,7 @@ public class Game
     {
         renderer.Clear();
         renderer.DrawWorld(world);
+        renderer.DrawEntity(player);
+        renderer.DrawUI();
     }
 }
