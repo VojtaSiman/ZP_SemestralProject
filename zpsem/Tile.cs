@@ -3,7 +3,9 @@ namespace zpsem;
 public enum TileType
 {
     Wall,
-    Floor
+    Floor,
+    Relic,
+    Start
 }
 
 public class Tile
@@ -23,6 +25,14 @@ public class Tile
             else if (Type == TileType.Floor)
             {
                 return '.';
+            }
+            else if (Type == TileType.Relic)
+            {
+                return '$';
+            }
+            else if (Type == TileType.Start)
+            {
+                return '+';
             }
             return ' ';
         }
@@ -48,6 +58,15 @@ public class Tile
             }
             
             Color = ConsoleColor.DarkGray;
+        }
+        else if (type == TileType.Relic)
+        {
+            WallHealth = 0;
+            Color = ConsoleColor.Yellow;
+        }
+        else if (type == TileType.Start)
+        {
+            Color = ConsoleColor.Magenta;
         }
         else
         {

@@ -64,4 +64,59 @@ public class World
         
         return new Tuple<int, int>(Width / 2, Height / 2);
     }
+
+    public Tuple<int, int> GetRelicPosition()
+    {
+        var startPosition = GetStartPosition();
+        Random random = new Random();
+        
+        int attempts = 0;
+
+        while (attempts < 200)
+        {
+            int x = random.Next(0, Width);
+            int y = random.Next(0, Height);
+
+            if (
+                IsInBounds(x, y) &&
+                int.Abs(startPosition.Item1 - x) > Width / 3 &&
+                int.Abs(startPosition.Item2 - y) > Height / 2
+            )
+            {
+                return new Tuple<int, int>(x, y);
+            }
+            
+            attempts++;
+        }
+        
+        return new Tuple<int, int>(Width - 1, Height - 1);
+    }
+
+    public Position GetNpcSpawnPosition()
+    {
+        var startPosition = GetStartPosition();
+        Random random = new Random();
+        
+        int attempts = 0;
+
+        while (attempts < 200)
+        {
+            int x = random.Next(0, Width);
+            int y = random.Next(0, Height);
+
+            if (
+                IsInBounds(x, y) &&
+                IsPassable(x, y) &&
+                int.Abs(startPosition.Item1 - x) > Width / 3 &&
+                int.Abs(startPosition.Item2 - y) > Height / 2
+            )
+            {
+                return new Position(x, y);
+            }
+            
+            attempts++;
+        }
+        
+        return new Position(Width - 1, Height - 1);
+    }
 }

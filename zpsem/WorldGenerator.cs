@@ -1,11 +1,5 @@
 namespace zpsem;
 
-struct Position(int x, int y)
-{
-    public int X = x;
-    public int Y = y;
-}
-
 // Inspired by this article:
 // https://www.gridbugs.org/cellular-automata-cave-generation/
 public class WorldGenerator

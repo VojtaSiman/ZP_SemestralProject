@@ -7,7 +7,7 @@ public class Game
     private Renderer renderer;
     private Player player;
     private List<NPC> npcs;
-    private List<Item> items;
+    private List<EnergyItem> items;
     private bool isRunning;
     private string message;
 
@@ -86,7 +86,7 @@ public class Game
             bool foundItem = false;
 
             // Checking if we picked up an item
-            foreach (Item item in items.ToList())
+            foreach (EnergyItem item in items.ToList())
             {
                 if (player.X == item.X && player.Y == item.Y)
                 {
@@ -121,7 +121,7 @@ public class Game
                     DrawLuckDeck()
                     )
                 {
-                    items.Add(new Item(player.X + directionX, player.Y + directionY, ConsoleColor.Green, '*'));
+                    items.Add(new EnergyItem(player.X + directionX, player.Y + directionY, ConsoleColor.Green, '*'));
                 }
             }
             else
@@ -133,7 +133,10 @@ public class Game
     
     private void Update()
     {
-        
+        foreach (var npc in npcs.ToList())
+        {
+            npc.Update(world);
+        }
     }
 
     private void Render()
@@ -143,6 +146,11 @@ public class Game
         foreach (var item in items)
         {
             renderer.DrawEntity(item);
+        }
+
+        foreach (var npc in npcs)
+        {
+            renderer.DrawEntity(npc);
         }
         renderer.DrawEntity(player);
         renderer.DrawMessage(message);
@@ -155,7 +163,7 @@ public class Game
         WorldGenerator.Generate(world);
 
         npcs = new List<NPC>();
-        items = new List<Item>();
+        items = new List<EnergyItem>();
         itemLuckList = new List<bool>();
         
         int itemCounter = 0;
@@ -167,17 +175,25 @@ public class Game
 
             if (world.GetTile(x, y).Type == TileType.Floor)
             {
-                items.Add(new Item(x, y, ConsoleColor.Green, '*'));
+                items.Add(new EnergyItem(x, y, ConsoleColor.Green, '*'));
                 itemCounter++;
             }
         }
-
-        
         
         var startPosition = world.GetStartPosition();
+        world.SetTile(startPosition.Item1, startPosition.Item2, TileType.Start);
         player = new Player(startPosition.Item1, startPosition.Item2, ConsoleColor.DarkMagenta, '@');
         player.Energy = 100;
         player.Inventory = new Inventory();
+
+        var relicPosition = world.GetRelicPosition();
+        world.SetTile(relicPosition.Item1, relicPosition.Item2, TileType.Relic);
+
+        for (int i = 0; i < 1; i++)
+        {
+            var npcSpawnPosition = world.GetNpcSpawnPosition();
+            npcs.Add(new NPC(npcSpawnPosition.X, npcSpawnPosition.Y, ConsoleColor.Red, 'S'));
+        }
     }
 
     private bool DrawLuckDeck()
