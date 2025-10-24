@@ -1,10 +1,10 @@
 ﻿namespace zpsem;
 
-class Program
+static class Program
 {
-    static void Main(string[] args)
+    static void Main()
     {
-        Game game = new Game();
+        var game = new Game();
         game.Run();
     }
 }

@@ -16,7 +16,15 @@ public class World
         {
             for (int y = 0; y < Height; y++)
             {
-                tiles[x, y] = new Tile(TileType.Floor);
+                // Add borders around the level
+                if (x == 0 || y == 0 || x == Width - 1 || y == Height - 1)
+                {
+                    tiles[x, y] = new Tile(TileType.Wall);
+                }
+                else
+                {
+                    tiles[x, y] = new Tile(TileType.Floor);
+                }
             }
         }
     }

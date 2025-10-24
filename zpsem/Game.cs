@@ -11,7 +11,7 @@ public class Game
     
     public Game()
     {
-        world = new World(12, 8);
+        world = new World(36, 10);
 
         player = new Player(5, 1, ConsoleColor.DarkMagenta, '@');
         
