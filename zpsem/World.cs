@@ -79,14 +79,28 @@ public class World
 
             if (
                 IsInBounds(x, y) &&
+                tiles[x, y].Type == TileType.Floor &&
                 int.Abs(startPosition.Item1 - x) > Width / 3 &&
-                int.Abs(startPosition.Item2 - y) > Height / 2
+                int.Abs(startPosition.Item2 - y) > Height / 2 &&
+                x != 0 && x != Width - 1 && y != 0 && y != Height - 1
             )
             {
                 return new Tuple<int, int>(x, y);
             }
             
             attempts++;
+        }
+        
+        // Fallback, take first empty tile from the bottom of the map
+        for (int x = 0; x < Width; x++)
+        {
+            for (int y = Height - 1; y >= 0; y--)
+            {
+                if (tiles[x, y].Type == TileType.Floor)
+                {
+                    return new Tuple<int, int>(x, y);
+                }
+            }
         }
         
         return new Tuple<int, int>(Width - 1, Height - 1);
@@ -107,6 +121,7 @@ public class World
             if (
                 IsInBounds(x, y) &&
                 IsPassable(x, y) &&
+                tiles[x, y].Type == TileType.Floor &&
                 int.Abs(startPosition.Item1 - x) > Width / 3 &&
                 int.Abs(startPosition.Item2 - y) > Height / 2
             )
@@ -116,7 +131,20 @@ public class World
             
             attempts++;
         }
+
+        // Fallback, take first empty tile from the bottom of the map
+        for (int x = 0; x < Width; x++)
+        {
+            for (int y = Height - 1; y >= 0; y--)
+            {
+                if (tiles[x, y].Type == TileType.Floor)
+                {
+                    return new Position(x, y);
+                }
+            }
+        }
         
+        // Impossible fallback but I am keeping it here for debugging purposes
         return new Position(Width - 1, Height - 1);
     }
 }

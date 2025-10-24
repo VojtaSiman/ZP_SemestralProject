@@ -8,8 +8,11 @@ public class Game
     private Player player;
     private List<NPC> npcs;
     private List<EnergyItem> items;
+    private List<Entity> gems;
+    
     private bool isRunning;
     private string message;
+    private int score = 0;
 
     private static int worldWidth = 48;
     private static int worldHeight = 20;
@@ -17,6 +20,9 @@ public class Game
     private static int numberOfItems = 10;
     private List<bool> itemLuckList;
     private int itemLuck = 9;
+
+    private static int numberOfBasicGems = 20;
+    private static int numberOfRareGems = 7;
     
     public Game()
     {
@@ -82,7 +88,12 @@ public class Game
         if (world.IsPassable(player.X + directionX, player.Y + directionY))
         {
             player.Move(directionX, directionY);
-            player.Energy -= 1;
+            
+            if (directionX != 0 || directionY != 0)
+            {
+                player.Energy -= 1;
+            }
+            
             bool foundItem = false;
 
             // Checking if we picked up an item
@@ -148,6 +159,11 @@ public class Game
             renderer.DrawEntity(item);
         }
 
+        foreach (var gem in gems)
+        {
+            renderer.DrawEntity(gem);
+        }
+        
         foreach (var npc in npcs)
         {
             renderer.DrawEntity(npc);
@@ -164,8 +180,10 @@ public class Game
 
         npcs = new List<NPC>();
         items = new List<EnergyItem>();
+        gems = new List<Entity>();
         itemLuckList = new List<bool>();
-        
+
+        // Initialize energy items
         int itemCounter = 0;
 
         while (itemCounter < numberOfItems)
@@ -179,20 +197,52 @@ public class Game
                 itemCounter++;
             }
         }
+
+        // Initialize gems
+        int gemCounter = 0;
+
+        while (gemCounter < numberOfBasicGems)
+        {
+            int x = random.Next(0, worldWidth);
+            int y = random.Next(0, worldHeight);
+            
+            if (world.GetTile(x, y).Type == TileType.Wall)
+            { 
+                gems.Add(new GemBasic(x, y));
+                gemCounter++;
+            }
+        }
         
+        gemCounter = 0;
+
+        while (gemCounter < numberOfRareGems)
+        {
+            int x = random.Next(0, worldWidth);
+            int y = random.Next(0, worldHeight);
+            
+            if (world.GetTile(x, y).Type == TileType.Wall)
+            { 
+                gems.Add(new GemRare(x, y));
+                gemCounter++;
+            }
+        }
+
+        // Initialize player
         var startPosition = world.GetStartPosition();
         world.SetTile(startPosition.Item1, startPosition.Item2, TileType.Start);
         player = new Player(startPosition.Item1, startPosition.Item2, ConsoleColor.DarkMagenta, '@');
         player.Energy = 100;
         player.Inventory = new Inventory();
 
+        // Initialize relic
         var relicPosition = world.GetRelicPosition();
         world.SetTile(relicPosition.Item1, relicPosition.Item2, TileType.Relic);
 
+        // Initialize NPCs
         for (int i = 0; i < 1; i++)
         {
             var npcSpawnPosition = world.GetNpcSpawnPosition();
-            npcs.Add(new NPC(npcSpawnPosition.X, npcSpawnPosition.Y, ConsoleColor.Red, 'S'));
+            npcs.Add(new NPC(npcSpawnPosition.X, npcSpawnPosition.Y, ConsoleColor.Red, 'X'));
         }
     }
 
