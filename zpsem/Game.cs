@@ -8,15 +8,18 @@ public class Game
     private Player player;
     private List<NPC> npcs;
     private bool isRunning;
+    private string message;
+
+    private int worldWidth = 48;
+    private int worldHeight = 20;
     
     public Game()
     {
-        world = new World(36, 10);
-
-        player = new Player(5, 1, ConsoleColor.DarkMagenta, '@');
+        InitializeWorld();
         
         renderer = new Renderer();
         isRunning = true;
+        message = ">";
     }
 
     public void Run()
@@ -63,11 +66,20 @@ public class Game
             case ConsoleKey.Spacebar:
                 // Wait one step
                 break;
+            case ConsoleKey.R:
+                // Regenerate the world
+                InitializeWorld();
+                break;
         }
         
         if (world.IsPassable(player.X + directionX, player.Y + directionY))
         {
-            player.Move(directionX, directionY);    
+            player.Move(directionX, directionY); 
+            message = ">";
+        }
+        else
+        {
+            message = "> Cannot move in this direction.";
         }
     }
     
@@ -81,6 +93,16 @@ public class Game
         renderer.Clear();
         renderer.DrawWorld(world);
         renderer.DrawEntity(player);
+        renderer.DrawMessage(message);
         renderer.DrawUI();
+    }
+
+    private void InitializeWorld()
+    {
+        world = new World(worldWidth, worldHeight);
+        WorldGenerator.Generate(world);
+
+        var startPosition = world.GetStartPosition();
+        player = new Player(startPosition.Item1, startPosition.Item2, ConsoleColor.DarkMagenta, '@');
     }
 }

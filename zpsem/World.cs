@@ -31,7 +31,15 @@ public class World
 
     public Tile GetTile(int x, int y)
     {
-        return IsInBounds(x, y) ? tiles[x, y] : new Tile(TileType.Floor);
+        return IsInBounds(x, y) ? tiles[x, y] : new Tile(TileType.Wall);
+    }
+
+    public void SetTile(int x, int y, TileType type)
+    {
+        if (IsInBounds(x, y))
+        {
+            tiles[x, y] = new Tile(type);
+        }
     }
 
     public bool IsInBounds(int x, int y)
@@ -42,5 +50,18 @@ public class World
     public bool IsPassable(int x, int y)
     {
         return IsInBounds(x, y) && !GetTile(x, y).IsSolid;
+    }
+
+    public Tuple<int, int> GetStartPosition()
+    {
+        for (int y = 0; y < Height; y++)
+        {
+            for (int x = 0; x < Width; x++)
+            {
+                if (IsPassable(x, y)) return new Tuple<int, int>(x, y);
+            }
+        }
+        
+        return new Tuple<int, int>(Width / 2, Height / 2);
     }
 }

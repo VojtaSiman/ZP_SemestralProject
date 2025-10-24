@@ -30,6 +30,12 @@ public class Renderer
         Console.ResetColor();
     }
 
+    public void DrawMessage(string message)
+    {
+        Console.SetCursorPosition(0, Console.WindowHeight - 3);
+        Console.Write(message);
+    }
+    
     public void DrawUI()
     {
         Console.SetCursorPosition(0, Console.WindowHeight - 2);
