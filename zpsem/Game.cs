@@ -7,14 +7,21 @@ public class Game
     private Renderer renderer;
     private Player player;
     private List<NPC> npcs;
+    private List<Item> items;
     private bool isRunning;
     private string message;
 
-    private int worldWidth = 48;
-    private int worldHeight = 20;
+    private static int worldWidth = 48;
+    private static int worldHeight = 20;
+
+    private static int numberOfItems = 10;
+    private List<bool> itemLuckList;
+    private int itemLuck = 9;
     
     public Game()
     {
+        random = new Random();
+        
         InitializeWorld();
         
         renderer = new Renderer();
@@ -75,8 +82,22 @@ public class Game
         if (world.IsPassable(player.X + directionX, player.Y + directionY))
         {
             player.Move(directionX, directionY);
+            player.Energy -= 1;
+            bool foundItem = false;
+
+            // Checking if we picked up an item
+            foreach (Item item in items.ToList())
+            {
+                if (player.X == item.X && player.Y == item.Y)
+                {
+                    items.Remove(item);
+                    player.Energy += 20;
+                    foundItem = true;
+                }
+            }
             
-            if (directionX == -1 && directionY == 0) message = "> You moved left.";
+            if (foundItem) message = "> You gained 20 energy!";
+            else if (directionX == -1 && directionY == 0) message = "> You moved left.";
             else if (directionX == 1 && directionY == 0) message = "> You moved right.";
             else if (directionX == 0 && directionY == -1) message = "> You moved up.";
             else if (directionX == 0 && directionY == 1) message = "> You moved down.";
@@ -88,9 +109,20 @@ public class Game
                 world.IsInBounds(player.X + directionX, player.Y + directionY)
                 )
             {
-                bool response = world.GetTile(player.X + directionX, player.Y + directionY).DamageWall(1);
-                if (response) message = "> The wall has broken!";
+                bool isWallDestroyed = world.GetTile(player.X + directionX, player.Y + directionY).DamageWall(1);
+                if (isWallDestroyed) message = "> The wall has broken!";
                 else message = "> You hit the wall. It got a bit weaker!";
+                
+                player.Energy -= 1;
+
+                // Small chance that we will find an energy item after destroying a wall
+                if (
+                    isWallDestroyed &&
+                    DrawLuckDeck()
+                    )
+                {
+                    items.Add(new Item(player.X + directionX, player.Y + directionY, ConsoleColor.Green, '*'));
+                }
             }
             else
             {
@@ -108,9 +140,13 @@ public class Game
     {
         renderer.Clear();
         renderer.DrawWorld(world);
+        foreach (var item in items)
+        {
+            renderer.DrawEntity(item);
+        }
         renderer.DrawEntity(player);
         renderer.DrawMessage(message);
-        renderer.DrawUI();
+        renderer.DrawUI(player);
     }
 
     private void InitializeWorld()
@@ -118,7 +154,64 @@ public class Game
         world = new World(worldWidth, worldHeight);
         WorldGenerator.Generate(world);
 
+        npcs = new List<NPC>();
+        items = new List<Item>();
+        itemLuckList = new List<bool>();
+        
+        int itemCounter = 0;
+
+        while (itemCounter < numberOfItems)
+        {
+            int x = random.Next(0, worldWidth);
+            int y = random.Next(0, worldHeight);
+
+            if (world.GetTile(x, y).Type == TileType.Floor)
+            {
+                items.Add(new Item(x, y, ConsoleColor.Green, '*'));
+                itemCounter++;
+            }
+        }
+
+        
+        
         var startPosition = world.GetStartPosition();
         player = new Player(startPosition.Item1, startPosition.Item2, ConsoleColor.DarkMagenta, '@');
+        player.Energy = 100;
+        player.Inventory = new Inventory();
+    }
+
+    private bool DrawLuckDeck()
+    {
+        if (itemLuckList.Count <= 0)
+        {
+            ShuffleLuckDeck();
+        }
+
+        bool answer = itemLuckList.First();
+        itemLuckList.RemoveAt(0);
+        return answer;
+    }
+    private void ShuffleLuckDeck()
+    {
+        for (int i = 0; i < itemLuck - 1; i++)
+        {
+            itemLuckList.Add(false);
+        }
+        itemLuckList.Add(true);
+        Shuffle(itemLuckList);
+    }
+
+    // Fisher-Yates Shuffle
+    // Taken from:
+    // https://jamesshinevar.medium.com/shuffle-a-list-c-fisher-yates-shuffle-32833bd8c62d
+    private void Shuffle<T>(IList<T> list)
+    {
+        int n = list.Count;
+        while (n > 1)
+        {
+            n--;
+            int k = random.Next(n + 1);
+            (list[k], list[n]) = (list[n], list[k]);
+        }
     }
 }

@@ -38,9 +38,9 @@ public class Renderer
         Console.Write(message);
     }
     
-    public void DrawUI()
+    public void DrawUI(Player player)
     {
         Console.SetCursorPosition(0, Console.WindowHeight - 2);
-        Console.Write("Press Q to quit.");
+        Console.Write("Player energy: " + player.Energy + " | Press Q to quit.");
     }
 }
