@@ -74,12 +74,28 @@ public class Game
         
         if (world.IsPassable(player.X + directionX, player.Y + directionY))
         {
-            player.Move(directionX, directionY); 
-            message = ">";
+            player.Move(directionX, directionY);
+            
+            if (directionX == -1 && directionY == 0) message = "> You moved left.";
+            else if (directionX == 1 && directionY == 0) message = "> You moved right.";
+            else if (directionX == 0 && directionY == -1) message = "> You moved up.";
+            else if (directionX == 0 && directionY == 1) message = "> You moved down.";
         }
         else
         {
-            message = "> Cannot move in this direction.";
+            if (
+                world.GetTile(player.X + directionX, player.Y + directionY).Type == TileType.Wall &&
+                world.IsInBounds(player.X + directionX, player.Y + directionY)
+                )
+            {
+                bool response = world.GetTile(player.X + directionX, player.Y + directionY).DamageWall(1);
+                if (response) message = "> The wall has broken!";
+                else message = "> You hit the wall. It got a bit weaker!";
+            }
+            else
+            {
+                message = "> Cannot move in this direction.";
+            }
         }
     }
     

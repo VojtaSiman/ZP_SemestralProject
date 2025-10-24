@@ -15,7 +15,9 @@ public class Renderer
             for (int x = 0; x < world.Width; x++)
             {
                 Tile tile = world.GetTile(x, y);
+                Console.ForegroundColor = tile.Color;
                 Console.Write(tile.Glyph);
+                Console.ResetColor();
             }
             
             Console.WriteLine();
