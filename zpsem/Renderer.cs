@@ -2,13 +2,13 @@ namespace zpsem;
 
 public class Renderer
 {
-    public void Clear()
+    public static void Clear()
     {
         Console.Clear();
         Console.SetCursorPosition(0, 0);
     }
 
-    public void DrawWorld(World world)
+    public static void DrawWorld(World world)
     {
         for (int y = 0; y < world.Height; y++)
         {
@@ -24,7 +24,7 @@ public class Renderer
         }
     }
 
-    public void DrawEntity(Entity entity)
+    public static void DrawEntity(Entity entity)
     {
         Console.SetCursorPosition(entity.X, entity.Y);
         Console.ForegroundColor = entity.Color;
@@ -32,15 +32,34 @@ public class Renderer
         Console.ResetColor();
     }
 
-    public void DrawMessage(string message)
+    public static void DrawMessage(string message)
     {
-        Console.SetCursorPosition(0, Console.WindowHeight - 3);
+        Console.SetCursorPosition(0, Console.WindowHeight - 4);
         Console.Write(message);
     }
     
-    public void DrawUI(Player player)
+    public static void DrawUserInterface(Player player, int score)
     {
+        Console.SetCursorPosition(0, Console.WindowHeight - 3);
+        
+        Console.ForegroundColor = player.Color;
+        Console.Write(player.Inventory.GetInventoryContent());
+        Console.ResetColor();
         Console.SetCursorPosition(0, Console.WindowHeight - 2);
-        Console.Write("Player energy: " + player.Energy + " | Press Q to quit.");
+
+        Console.ForegroundColor = player.Energy switch
+        {
+            > 100 => ConsoleColor.Green,
+            > 50 => ConsoleColor.DarkGreen,
+            > 20 => ConsoleColor.DarkYellow,
+            _ => ConsoleColor.DarkRed
+        };
+        Console.Write("Player energy: " + player.Energy);
+        
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.Write(" | Score: " + score);
+        
+        Console.ResetColor();
+        Console.Write(" | Press Q to quit.");
     }
 }
