@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("zpsem")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7796d0b5fe202fd15fb6914931016b8708d00966")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f584cfdce9489505de1aafeb1c8a9022c77307f2")]
 [assembly: System.Reflection.AssemblyProductAttribute("zpsem")]
 [assembly: System.Reflection.AssemblyTitleAttribute("zpsem")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

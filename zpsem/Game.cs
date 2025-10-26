@@ -29,7 +29,7 @@ public class Game
 
     private bool _hasFoundRelic;
 
-    private const int PlayerVisionRadius = 4;
+    private const int PlayerVisionRadius = 6;
 
     public Game()
     {
@@ -210,6 +210,7 @@ public class Game
     {
         // Visibility calculation
         _world.UpdateVisibility(_player.X, _player.Y, PlayerVisionRadius);
+        //_world.UpdateLineOfSight(_player.X, _player.Y, PlayerVisionRadius);
 
         foreach (var gem in _gems.ToList())
         {
