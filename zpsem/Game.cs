@@ -22,6 +22,7 @@ public class Game
     private const int DefaultPlayerEnergy = 100;
     
     private bool _isRunning;
+    private bool _wishToQuitGame = false;
     private string _message;
     private int _score;
 
@@ -37,7 +38,7 @@ public class Game
         _message = ">";
     }
 
-    public void Run()
+    public bool Run()
     {
         Render();
         
@@ -47,6 +48,8 @@ public class Game
             Update();
             Render();
         }
+        
+        return _wishToQuitGame;
     }
 
     private void ProcessInput()
@@ -59,24 +62,29 @@ public class Game
         switch (key)
         {
             case ConsoleKey.W:
+            case ConsoleKey.UpArrow:
                 // Walk up
                 directionY = -1;
                 break;
             case ConsoleKey.S:
+            case ConsoleKey.DownArrow:
                 // Walk down
                 directionY = 1;
                 break;
             case ConsoleKey.A:
+            case ConsoleKey.LeftArrow:
                 // Walk left
                 directionX = -1;
                 break;
             case ConsoleKey.D:
+            case ConsoleKey.RightArrow:
                 // Walk right
                 directionX = 1;
                 break;
             case ConsoleKey.Q:
             case ConsoleKey.Escape:
                 _isRunning = false;
+                _wishToQuitGame = true;
                 break;
             case ConsoleKey.Spacebar:
                 // Wait one step
@@ -167,6 +175,8 @@ public class Game
         if (isGameWon)
         {
             _message = "> You won the game!";
+            Renderer.Clear();
+            Renderer.DrawWorld(_world);
             Renderer.DrawMessage(_message);
             Renderer.DrawWinScreen(_world);
             _isRunning = false;
@@ -182,6 +192,8 @@ public class Game
                 _message = "> You were caught!";
             }
             
+            Renderer.Clear();
+            Renderer.DrawWorld(_world);
             Renderer.DrawMessage(_message);
             Renderer.DrawGameOverScreen(_world);
             _isRunning = false;
