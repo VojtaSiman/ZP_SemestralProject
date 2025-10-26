@@ -80,46 +80,6 @@ public class World
             }
         }
     }
-
-    public void UpdateLineOfSight(int x, int y, int radius)
-    {
-        GetTile(x, y).IsExplored = true;
-
-        int numOfRays = 360;
-        
-        for (int i = 0; i < numOfRays; i++)
-        {
-            double angle = (2 * Math.PI * i) / numOfRays;
-            CastRay(x, y, angle, radius);
-        }
-    }
-
-    // Based on Bresenham's line algorithm
-    public void CastRay(int x, int y, double angle, int maxDistance)
-    {
-        double dx = Math.Cos(angle);
-        double dy = Math.Sin(angle);
-
-        // Start from the center of the tile
-        double rayX = x + 0.5;
-        double rayY = y + 0.5;
-
-        for (int i = 0; i < maxDistance; i++)
-        {
-            rayX += dx;
-            rayY += dy;
-            
-            int posX = (int)rayX;
-            int posY = (int)rayY;
-            
-            if (!IsInBounds(posX, posY)) break;
-            
-            Tile tile = GetTile(posX, posY);
-            tile.IsExplored = true;
-            
-            if (tile.Type == TileType.Wall) break;
-        }
-    }
     
     public Tuple<int, int> GetRelicPosition()
     {

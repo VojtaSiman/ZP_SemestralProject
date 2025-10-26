@@ -2,6 +2,8 @@ namespace zpsem;
 
 public class NPC(int x, int y, ConsoleColor color, char glyph) : Entity(x, y, color, glyph)
 {
+    private const int NPCVisionRadius = 8;
+    
     public void Update(World world, Player player)
     {
         Random random = new Random();
@@ -23,7 +25,7 @@ public class NPC(int x, int y, ConsoleColor color, char glyph) : Entity(x, y, co
             Position direction = directions[0];
             
             // If player is nearby
-            if (distanceFromPlayer < 8)
+            if (distanceFromPlayer < NPCVisionRadius)
             {
                 // Check if player is further away horizontally or vertically
                 if (int.Abs(dx) > int.Abs(dy))
@@ -39,7 +41,7 @@ public class NPC(int x, int y, ConsoleColor color, char glyph) : Entity(x, y, co
             }
             
             // If the path forward is blocked or the player is too far, let's pick a random direction in unblocked direction.
-            if (distanceFromPlayer >= 8 || !world.IsPassable(X + direction.X, Y + direction.Y))
+            if (distanceFromPlayer >= NPCVisionRadius || !world.IsPassable(X + direction.X, Y + direction.Y))
             {
                 List<Position> possibleDirections = [];
                 foreach (var dir in directions)

@@ -2,8 +2,8 @@ namespace zpsem;
 
 public class Game
 {
-    private World _world = null!;
     private readonly Random _random;
+    private World _world = null!;
     private Player _player = null!;
     private List<NPC> _npcs = null!;
     private List<EnergyItem> _items = null!;
@@ -13,30 +13,31 @@ public class Game
     private const int WorldHeight = 20;
 
     private const int NumberOfItems = 10;
-    private List<bool> _itemLuckList = null!;
-    private const int ItemLuck = 9;
-
     private const int NumberOfBasicGems = 20;
     private const int NumberOfRareGems = 7;
     
     private const int DefaultPlayerEnergy = 100;
     private const int EnergyRefill = 20;
+    private const int EnergyCostPerMove = 1;
+    private const int EnergyCostWallHit = 1;
+    
+    private const int PlayerVisionRadius = 6;
+    
+    private const int WallDestructionLuckOdds = 9;
+    private List<bool> _itemLuckList = null!;
     
     private bool _isRunning;
-    private bool _wishToQuitGame = false;
+    private bool _wishToQuitGame;
     private string _message;
     private int _score;
-
     private bool _hasFoundRelic;
 
-    private const int PlayerVisionRadius = 6;
-
+    private int TotalScore => _score + _player.Energy;
+    
     public Game()
     {
         _random = new Random();
-        
         InitializeWorld();
-        
         _isRunning = true;
         _message = ">";
     }
@@ -59,111 +60,205 @@ public class Game
     private void ProcessInput()
     {
         var key = Console.ReadKey(true).Key;
-
-        int directionX = 0;
-        int directionY = 0;
+        var direction = GetMovementDirection(key);
         
+        if (HandleSpecialKeys(key)) return;
+
+        if (direction != (0, 0))
+        {
+            AttemptMove(direction.x, direction.y);
+        }
+    }
+
+    private (int x, int y) GetMovementDirection(ConsoleKey key)
+    {
+        (int x, int y) returnValue;
+
         switch (key)
         {
             case ConsoleKey.W:
             case ConsoleKey.UpArrow:
                 // Walk up
-                directionY = -1;
+                returnValue = (0, -1);
                 break;
             case ConsoleKey.S:
             case ConsoleKey.DownArrow:
                 // Walk down
-                directionY = 1;
+                returnValue = (0, 1);
                 break;
             case ConsoleKey.A:
             case ConsoleKey.LeftArrow:
                 // Walk left
-                directionX = -1;
+                returnValue = (-1, 0);
                 break;
             case ConsoleKey.D:
             case ConsoleKey.RightArrow:
                 // Walk right
-                directionX = 1;
+                returnValue = (1, 0);
                 break;
+            case ConsoleKey.Spacebar:
+                // Wait
+                returnValue = (0, 0);
+                break;
+            default:
+                returnValue = (0, 0);
+                break;
+        }
+        
+        return returnValue;
+    }
+
+    private bool HandleSpecialKeys(ConsoleKey key)
+    {
+        switch (key)
+        {
             case ConsoleKey.Q:
             case ConsoleKey.Escape:
                 _isRunning = false;
                 _wishToQuitGame = true;
-                break;
-            case ConsoleKey.Spacebar:
-                // Wait one step
-                break;
+                return true;
             case ConsoleKey.R:
                 // Regenerate the world
                 InitializeWorld();
-                break;
+                return true;
+            default:
+                return false;
         }
-        
-        if (_world.IsPassable(_player.X + directionX, _player.Y + directionY))
-        {
-            _player.Move(directionX, directionY);
-            
-            if (directionX != 0 || directionY != 0)
-            {
-                _player.Energy -= 1;
-            }
-            
-            bool foundEnergyItem = false;
-            bool foundGem = false;
+    }
 
-            // Checking if we picked up an item
-            foreach (EnergyItem item in _items.ToList())
-            {
-                if (_player.X != item.X || _player.Y != item.Y) continue;
-                
-                _items.Remove(item);
-                _player.Energy += EnergyRefill;
-                foundEnergyItem = true;
-            }
-            
-            // Checking if we picked up a gem
-            foreach (var gem in _gems.ToList())
-            {
-                if (gem.X != _player.X || gem.Y != _player.Y) continue;
-                _score += gem.Value;
-                _player.Inventory.AddGemToInventory(gem);
-                _gems.Remove(gem);
-                foundGem = true;
-            }
-            
-            if (foundEnergyItem) _message = "> You gained " + EnergyRefill + " energy!";
-            else if (foundGem) _message = "> You picked up a gem!";
-            else if (directionX == -1 && directionY == 0) _message = "> You moved left.";
-            else if (directionX == 1 && directionY == 0) _message = "> You moved right.";
-            else if (directionX == 0 && directionY == -1) _message = "> You moved up.";
-            else if (directionX == 0 && directionY == 1) _message = "> You moved down.";
+    private void AttemptMove(int dx, int dy)
+    {
+        int targetX = _player.X + dx;
+        int targetY = _player.Y + dy;
+
+        if (_world.IsPassable(targetX, targetY))
+        {
+            ExecuteMove(dx, dy);
         }
         else
         {
-            if (
-                _world.GetTile(_player.X + directionX, _player.Y + directionY).Type == TileType.Wall &&
-                _world.IsInBounds(_player.X + directionX, _player.Y + directionY)
-                )
-            {
-                bool isWallDestroyed = _world.GetTile(_player.X + directionX, _player.Y + directionY).DamageWall();
-                _message = isWallDestroyed ? "> The wall has broken!" : "> You hit the wall. It got a bit weaker!";
-                
-                _player.Energy -= 1;
-
-                // Small chance that we will find an energy item after destroying a wall
-                if (
-                    isWallDestroyed &&
-                    DrawLuckDeck()
-                    )
-                {
-                    _items.Add(new EnergyItem(_player.X + directionX, _player.Y + directionY, ConsoleColor.Green, '*'));
-                }
-            }
-            else
-            {
-                _message = "> Cannot move in this direction.";
-            }
+            HandleCollision(targetX, targetY);
         }
+    }
+
+    private void ExecuteMove(int dx, int dy)
+    {
+        _player.Move(dx, dy);
+
+        // If player actually moved in any direction, decrease energy
+        if (dx != 0 || dy != 0)
+        {
+            _player.Energy -= EnergyCostPerMove;
+        }
+
+        HandlePickups();
+        UpdateMovementMessage(dx, dy);
+    }
+
+    private void HandleCollision(int targetX, int targetY)
+    {
+        if (IsDestructibleWall(targetX, targetY))
+        {
+            HandleWallDestruction(targetX, targetY);
+        }
+        else
+        {
+            _message = "> Cannot move in this direction.";
+        }
+    }
+
+    private bool IsDestructibleWall(int x, int y)
+    {
+        return _world.IsInBounds(x, y) &&
+               _world.GetTile(x, y).Type == TileType.Wall;
+    }
+
+    private void HandleWallDestruction(int x, int y)
+    {
+        bool isWallDestroyed = _world.GetTile(x, y).DamageWall();
+        _message = isWallDestroyed
+            ? "> Wall destroyed!"
+            : "> You hit the wall. It got a bit weaker!";
+        
+        _player.Energy -= EnergyCostWallHit;
+
+        if (isWallDestroyed && DrawLuckDeck())
+        {
+            SpawnEnergyItemAt(x, y);
+        }
+    }
+
+    private void HandlePickups()
+    {
+        bool pickedUpItem = TryPickupEnergyItem();
+        bool pickedUpGem = TryPickupGem();
+
+        if (pickedUpItem)
+        {
+            _message = "> You gained " + EnergyRefill + " energy!";
+        }
+        else if (pickedUpGem)
+        {
+            _message = "> You picked up a gem!";
+        }
+    }
+
+    private bool TryPickupEnergyItem()
+    {
+        foreach (EnergyItem item in _items.ToList())
+        {
+            if (_player.X != item.X || _player.Y != item.Y) continue;
+                
+            _items.Remove(item);
+            _player.Energy += EnergyRefill;
+            return true;
+        } 
+        return false;
+    }
+
+    private bool TryPickupGem()
+    {
+        foreach (var gem in _gems.ToList())
+        {
+            if (gem.X != _player.X || gem.Y != _player.Y) continue;
+            _score += gem.Value;
+            _player.Inventory.AddGemToInventory(gem);
+            _gems.Remove(gem);
+            return true;
+        }
+        return false;
+    }
+
+    private void UpdateMovementMessage(int dx, int dy)
+    {
+        if (_message.StartsWith("> You gained") || _message.StartsWith("> You picked up"))
+        {
+            return; // Don't override pickup messages
+        }
+        
+        _message = GetMovementMessage(dx, dy);
+    }
+
+    private string GetMovementMessage(int dx, int dy)
+    {
+        switch ((dx, dy))
+        {
+            case (-1, 0):
+                return "> You moved left.";
+            case (1, 0):
+                return "> You moved right.";
+            case (0, -1):
+                return "> You moved up.";
+            case (0, 1):
+                return "> You moved down.";
+            default:
+                return ">";
+        }
+    }
+
+    private void SpawnEnergyItemAt(int x, int y)
+    {
+        _items.Add(new EnergyItem(x, y, ConsoleColor.Green, '*'));
     }
     
     private void Update()
@@ -210,25 +305,24 @@ public class Game
     {
         // Visibility calculation
         _world.UpdateVisibility(_player.X, _player.Y, PlayerVisionRadius);
-        //_world.UpdateLineOfSight(_player.X, _player.Y, PlayerVisionRadius);
 
-        foreach (var gem in _gems.ToList())
-        {
-            if (CheckPlayerRadius(gem.X, gem.Y, PlayerVisionRadius)) gem.IsExplored = true;
-        }
+        UpdateEntityVisibility(_gems);
+        UpdateEntityVisibility(_npcs);
+        UpdateEntityVisibility(_items);
+    }
 
-        foreach (var npc in _npcs.ToList())
+    private void UpdateEntityVisibility<T>(List<T> entities) where T : Entity
+    {
+        foreach (var entity in entities)
         {
-            if (CheckPlayerRadius(npc.X, npc.Y, PlayerVisionRadius)) npc.IsExplored = true;
-        }
-
-        foreach (var energyItem in _items.ToList())
-        {
-            if (CheckPlayerRadius(energyItem.X, energyItem.Y, PlayerVisionRadius))  energyItem.IsExplored = true;
+            if (IsInPlayerVisionRadius(entity.X, entity.Y, PlayerVisionRadius))
+            {
+                entity.IsExplored = true;
+            }
         }
     }
 
-    private bool CheckPlayerRadius(int x, int y, int radius)
+    private bool IsInPlayerVisionRadius(int x, int y, int radius)
     {
         int dx = Math.Abs(x - _player.X);
         int dy = Math.Abs(y - _player.Y);
@@ -241,6 +335,8 @@ public class Game
         
         Renderer.Clear();
         Renderer.DrawWorld(_world);
+        
+        // Render entities
         foreach (var item in _items)
         {
             Renderer.DrawEntity(item);
@@ -257,9 +353,10 @@ public class Game
         }
         Renderer.DrawEntity(_player);
         
+        // Render UI
         Renderer.DrawDebugLine();
         Renderer.DrawMessage(_message);
-        Renderer.DrawUserInterface(_player, _score + _player.Energy);
+        Renderer.DrawUserInterface(_player, TotalScore);
     }
 
     private void InitializeWorld()
@@ -271,11 +368,25 @@ public class Game
         _items = [];
         _gems = [];
         _itemLuckList = [];
+        _score = 0;
+        _hasFoundRelic = false;
 
+        SpawnRelic();
+        SpawnEnergyItems();
+        SpawnGems();
+        SpawnPlayer();
+        SpawnNPCs();
+    }
+
+    private void SpawnRelic()
+    {
         // Initialize relic
         var relicPosition = _world.GetRelicPosition();
         _world.SetTile(relicPosition.Item1, relicPosition.Item2, TileType.Relic);
-        
+    }
+    
+    private void SpawnEnergyItems()
+    {
         // Initialize energy items
         int itemCounter = 0;
 
@@ -288,9 +399,13 @@ public class Game
             _items.Add(new EnergyItem(x, y, ConsoleColor.Green, '*'));
             itemCounter++;
         }
+    }
 
+    private void SpawnGems()
+    {
         // Initialize gems
         int gemCounter = 0;
+        var usedPositions = new HashSet<(int x, int y)>();
 
         while (gemCounter < NumberOfBasicGems)
         {
@@ -298,7 +413,10 @@ public class Game
             int y = _random.Next(0, WorldHeight);
 
             if (_world.GetTile(x, y).Type != TileType.Wall) continue;
+            if (usedPositions.Contains((x, y))) continue;
+            
             _gems.Add(new GemBasic(x, y));
+            usedPositions.Add((x, y));
             gemCounter++;
         }
         
@@ -310,11 +428,16 @@ public class Game
             int y = _random.Next(0, WorldHeight);
 
             if (_world.GetTile(x, y).Type != TileType.Wall) continue;
+            if (usedPositions.Contains((x, y))) continue;
             
             _gems.Add(new GemRare(x, y));
+            usedPositions.Add((x, y));
             gemCounter++;
         }
+    }
 
+    private void SpawnPlayer()
+    {
         // Initialize player
         var startPosition = _world.GetStartPosition();
         _world.SetTile(startPosition.Item1, startPosition.Item2, TileType.Start);
@@ -322,7 +445,10 @@ public class Game
         _player.Energy = DefaultPlayerEnergy;
         _player.Inventory = new Inventory();
         _player.IsExplored = true;
-        
+    }
+
+    private void SpawnNPCs()
+    {
         // Initialize NPCs
         for (int i = 0; i < 2; i++)
         {
@@ -381,7 +507,7 @@ public class Game
     }
     private void ShuffleLuckDeck()
     {
-        for (int i = 0; i < ItemLuck - 1; i++)
+        for (int i = 0; i < WallDestructionLuckOdds - 1; i++)
         {
             _itemLuckList.Add(false);
         }
