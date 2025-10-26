@@ -20,6 +20,7 @@ public class Game
     private const int NumberOfRareGems = 7;
     
     private const int DefaultPlayerEnergy = 100;
+    private const int EnergyRefill = 20;
     
     private bool _isRunning;
     private bool _wishToQuitGame = false;
@@ -27,6 +28,8 @@ public class Game
     private int _score;
 
     private bool _hasFoundRelic;
+
+    private const int PlayerVisionRadius = 4;
 
     public Game()
     {
@@ -40,6 +43,7 @@ public class Game
 
     public bool Run()
     {
+        UpdateVisibility();
         Render();
         
         while (_isRunning)
@@ -113,7 +117,7 @@ public class Game
                 if (_player.X != item.X || _player.Y != item.Y) continue;
                 
                 _items.Remove(item);
-                _player.Energy += 20;
+                _player.Energy += EnergyRefill;
                 foundEnergyItem = true;
             }
             
@@ -127,7 +131,7 @@ public class Game
                 foundGem = true;
             }
             
-            if (foundEnergyItem) _message = "> You gained 20 energy!";
+            if (foundEnergyItem) _message = "> You gained " + EnergyRefill + " energy!";
             else if (foundGem) _message = "> You picked up a gem!";
             else if (directionX == -1 && directionY == 0) _message = "> You moved left.";
             else if (directionX == 1 && directionY == 0) _message = "> You moved right.";
@@ -164,6 +168,8 @@ public class Game
     
     private void Update()
     {
+        UpdateVisibility();
+        
         foreach (var npc in _npcs.ToList())
         {
             npc.Update(_world, _player);
@@ -200,6 +206,34 @@ public class Game
         }
     }
 
+    private void UpdateVisibility()
+    {
+        // Visibility calculation
+        _world.UpdateVisibility(_player.X, _player.Y, PlayerVisionRadius);
+
+        foreach (var gem in _gems.ToList())
+        {
+            if (CheckPlayerRadius(gem.X, gem.Y, PlayerVisionRadius)) gem.IsExplored = true;
+        }
+
+        foreach (var npc in _npcs.ToList())
+        {
+            if (CheckPlayerRadius(npc.X, npc.Y, PlayerVisionRadius)) npc.IsExplored = true;
+        }
+
+        foreach (var energyItem in _items.ToList())
+        {
+            if (CheckPlayerRadius(energyItem.X, energyItem.Y, PlayerVisionRadius))  energyItem.IsExplored = true;
+        }
+    }
+
+    private bool CheckPlayerRadius(int x, int y, int radius)
+    {
+        int dx = Math.Abs(x - _player.X);
+        int dy = Math.Abs(y - _player.Y);
+        return (dx * dx + dy * dy <= radius * radius);
+    }
+    
     private void Render()
     {
         if (!_isRunning) return;
@@ -286,12 +320,15 @@ public class Game
         _player = new Player(startPosition.Item1, startPosition.Item2, ConsoleColor.DarkMagenta, '@');
         _player.Energy = DefaultPlayerEnergy;
         _player.Inventory = new Inventory();
+        _player.IsExplored = true;
         
         // Initialize NPCs
         for (int i = 0; i < 2; i++)
         {
             var npcSpawnPosition = _world.GetNpcSpawnPosition();
-            _npcs.Add(new NPC(npcSpawnPosition.X, npcSpawnPosition.Y, ConsoleColor.Red, 'X'));
+            var npc = new NPC(npcSpawnPosition.X, npcSpawnPosition.Y, ConsoleColor.Red, 'X');
+            npc.IsExplored = false;
+            _npcs.Add(npc);
         }
     }
 

@@ -43,6 +43,8 @@ public class Tile
     public int WallHealth { get; set; }
     private Random random = new Random();
     
+    public bool IsExplored { get; set; }
+    
     public Tile(TileType type)
     {
         Type = type;

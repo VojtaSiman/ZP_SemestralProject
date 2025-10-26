@@ -16,18 +16,24 @@ public static class Renderer
         {
             for (int x = 0; x < world.Width; x++)
             {
-                Tile tile = world.GetTile(x, y);
-                Console.ForegroundColor = tile.Color;
-                Console.Write(tile.Glyph);
-                Console.ResetColor();
+                var tile = world.GetTile(x, y);
+
+                if (!tile.IsExplored)
+                    Console.Write('~');
+                else
+                {
+                    Console.ForegroundColor = tile.Color;
+                    Console.Write(tile.Glyph);
+                    Console.ResetColor();
+                }
             }
-            
             Console.WriteLine();
         }
     }
 
     public static void DrawEntity(Entity entity)
     {
+        if (!entity.IsExplored) return;
         Console.SetCursorPosition(entity.X, entity.Y);
         Console.ForegroundColor = entity.Color;
         Console.Write(entity.Glyph);

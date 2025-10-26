@@ -65,6 +65,22 @@ public class World
         return new Tuple<int, int>(Width / 2, Height / 2);
     }
 
+    public void UpdateVisibility(int x, int y, int radius)
+    {
+        for (int i = x - radius; i <= x + radius; i++)
+        {
+            for (int j = y - radius; j <= y + radius; j++)
+            {
+                if (!IsInBounds(i, j)) continue;
+                
+                int dx = i - x;
+                int dy = j - y;
+                
+                if (dx * dx + dy * dy < radius * radius) GetTile(i, j).IsExplored = true;
+            }
+        }
+    }
+    
     public Tuple<int, int> GetRelicPosition()
     {
         var startPosition = GetStartPosition();
