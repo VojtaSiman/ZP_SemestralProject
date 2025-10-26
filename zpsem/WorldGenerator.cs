@@ -4,13 +4,13 @@ namespace zpsem;
 // https://www.gridbugs.org/cellular-automata-cave-generation/
 public class WorldGenerator
 {
-    private static float DENSITY = 0.55f;
-    private static int SURVIVE_MIN = 4;
-    private static int SURVIVE_MAX = 8;
-    private static int RESURRECT_MIN = 5;
-    private static int RESURRECT_MAX = 5;
-    private static int MIN_CAVE_SIZE = 10;
-    private static Random random = new Random();
+    private const float Density = 0.55f;
+    private const int SurviveMin = 4;
+    private const int SurviveMax = 8;
+    private const int ResurrectMin = 5;
+    private const int ResurrectMax = 5;
+    private const int MinCaveSize = 10;
+    private static Random _random = new Random();
 
     public static void Generate(World world)
     {
@@ -19,7 +19,7 @@ public class WorldGenerator
         {
             for (int x = 0; x < world.Width; x++)
             {
-                if (random.NextDouble() < DENSITY)
+                if (_random.NextDouble() < Density)
                 {
                     world.SetTile(x, y, TileType.Wall);    
                 }
@@ -27,7 +27,6 @@ public class WorldGenerator
                 {
                     world.SetTile(x, y, TileType.Floor);
                 }
-                
             }
         }
         
@@ -41,7 +40,7 @@ public class WorldGenerator
         }
         
         CleanupWalls(world);
-        RemoveSmallCaves(world, MIN_CAVE_SIZE);
+        RemoveSmallCaves(world, MinCaveSize);
     }
 
     public static void AddBorder(World world)
@@ -71,13 +70,13 @@ public class WorldGenerator
 
                 if (world.GetTile(x, y).Type == TileType.Wall)
                 {
-                    newTiles[x, y] = countNeighborWalls >= SURVIVE_MIN && countNeighborWalls <= SURVIVE_MAX
+                    newTiles[x, y] = countNeighborWalls >= SurviveMin && countNeighborWalls <= SurviveMax
                         ? new Tile(TileType.Wall)
                         : new Tile(TileType.Floor);
                 }
                 else
                 {
-                    newTiles[x, y] = countNeighborWalls >= RESURRECT_MIN && countNeighborWalls <= RESURRECT_MAX
+                    newTiles[x, y] = countNeighborWalls >= ResurrectMin && countNeighborWalls <= ResurrectMax
                         ? new Tile(TileType.Wall)
                         : new Tile(TileType.Floor);
                 }

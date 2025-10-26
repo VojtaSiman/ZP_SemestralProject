@@ -2,7 +2,7 @@ namespace zpsem;
 
 public class World
 {
-    private Tile[,] tiles;
+    private Tile[,] _tiles;
     public int Width { get; }
     public int Height { get; }
 
@@ -10,7 +10,7 @@ public class World
     {
         Width = width;
         Height = height;
-        tiles = new Tile[Width, Height];
+        _tiles = new Tile[Width, Height];
 
         for (int x = 0; x < Width; x++)
         {
@@ -19,11 +19,11 @@ public class World
                 // Add borders around the level
                 if (x == 0 || y == 0 || x == Width - 1 || y == Height - 1)
                 {
-                    tiles[x, y] = new Tile(TileType.Wall);
+                    _tiles[x, y] = new Tile(TileType.Wall);
                 }
                 else
                 {
-                    tiles[x, y] = new Tile(TileType.Floor);
+                    _tiles[x, y] = new Tile(TileType.Floor);
                 }
             }
         }
@@ -31,14 +31,14 @@ public class World
 
     public Tile GetTile(int x, int y)
     {
-        return IsInBounds(x, y) ? tiles[x, y] : new Tile(TileType.Wall);
+        return IsInBounds(x, y) ? _tiles[x, y] : new Tile(TileType.Wall);
     }
 
     public void SetTile(int x, int y, TileType type)
     {
         if (IsInBounds(x, y))
         {
-            tiles[x, y] = new Tile(type);
+            _tiles[x, y] = new Tile(type);
         }
     }
 
@@ -79,7 +79,7 @@ public class World
 
             if (
                 IsInBounds(x, y) &&
-                tiles[x, y].Type == TileType.Floor &&
+                _tiles[x, y].Type == TileType.Floor &&
                 int.Abs(startPosition.Item1 - x) > Width / 3 &&
                 int.Abs(startPosition.Item2 - y) > Height / 2 &&
                 x != 0 && x != Width - 1 && y != 0 && y != Height - 1
@@ -96,7 +96,7 @@ public class World
         {
             for (int y = Height - 1; y >= 0; y--)
             {
-                if (tiles[x, y].Type == TileType.Floor)
+                if (_tiles[x, y].Type == TileType.Floor)
                 {
                     return new Tuple<int, int>(x, y);
                 }
@@ -121,7 +121,7 @@ public class World
             if (
                 IsInBounds(x, y) &&
                 IsPassable(x, y) &&
-                tiles[x, y].Type == TileType.Floor &&
+                _tiles[x, y].Type == TileType.Floor &&
                 int.Abs(startPosition.Item1 - x) > Width / 3 &&
                 int.Abs(startPosition.Item2 - y) > Height / 2
             )
@@ -137,7 +137,7 @@ public class World
         {
             for (int y = Height - 1; y >= 0; y--)
             {
-                if (tiles[x, y].Type == TileType.Floor)
+                if (_tiles[x, y].Type == TileType.Floor)
                 {
                     return new Position(x, y);
                 }

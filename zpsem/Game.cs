@@ -25,6 +25,8 @@ public class Game
     private string _message;
     private int _score;
 
+    private bool _hasFoundRelic;
+
     public Game()
     {
         _random = new Random();
@@ -156,12 +158,40 @@ public class Game
     {
         foreach (var npc in _npcs.ToList())
         {
-            npc.Update(_world);
+            npc.Update(_world, _player);
+        }
+
+        bool isGameWon = CheckWinCondition();
+        bool isGameLost = CheckLoseCondition();
+
+        if (isGameWon)
+        {
+            _message = "> You won the game!";
+            Renderer.DrawMessage(_message);
+            Renderer.DrawWinScreen(_world);
+            _isRunning = false;
+        }
+        else if (isGameLost)
+        {
+            if (_player.Energy <= 0)
+            {
+                _message = "> You ran out of energy!";
+            }
+            else
+            {
+                _message = "> You were caught!";
+            }
+            
+            Renderer.DrawMessage(_message);
+            Renderer.DrawGameOverScreen(_world);
+            _isRunning = false;
         }
     }
 
     private void Render()
     {
+        if (!_isRunning) return;
+        
         Renderer.Clear();
         Renderer.DrawWorld(_world);
         foreach (var item in _items)
@@ -179,6 +209,8 @@ public class Game
             Renderer.DrawEntity(npc);
         }
         Renderer.DrawEntity(_player);
+        
+        Renderer.DrawDebugLine();
         Renderer.DrawMessage(_message);
         Renderer.DrawUserInterface(_player, _score + _player.Energy);
     }
@@ -193,6 +225,10 @@ public class Game
         _gems = [];
         _itemLuckList = [];
 
+        // Initialize relic
+        var relicPosition = _world.GetRelicPosition();
+        _world.SetTile(relicPosition.Item1, relicPosition.Item2, TileType.Relic);
+        
         // Initialize energy items
         int itemCounter = 0;
 
@@ -213,12 +249,10 @@ public class Game
         {
             int x = _random.Next(0, WorldWidth);
             int y = _random.Next(0, WorldHeight);
-            
-            if (_world.GetTile(x, y).Type == TileType.Wall)
-            { 
-                _gems.Add(new GemBasic(x, y));
-                gemCounter++;
-            }
+
+            if (_world.GetTile(x, y).Type != TileType.Wall) continue;
+            _gems.Add(new GemBasic(x, y));
+            gemCounter++;
         }
         
         gemCounter = 0;
@@ -240,13 +274,9 @@ public class Game
         _player = new Player(startPosition.Item1, startPosition.Item2, ConsoleColor.DarkMagenta, '@');
         _player.Energy = DefaultPlayerEnergy;
         _player.Inventory = new Inventory();
-
-        // Initialize relic
-        var relicPosition = _world.GetRelicPosition();
-        _world.SetTile(relicPosition.Item1, relicPosition.Item2, TileType.Relic);
-
+        
         // Initialize NPCs
-        for (int i = 0; i < 1; i++)
+        for (int i = 0; i < 2; i++)
         {
             var npcSpawnPosition = _world.GetNpcSpawnPosition();
             _npcs.Add(new NPC(npcSpawnPosition.X, npcSpawnPosition.Y, ConsoleColor.Red, 'X'));
@@ -259,15 +289,32 @@ public class Game
     // 2. The player has returned back to start
     private bool CheckWinCondition()
     {
-        return false;
+        // Picking up the relic
+        if (_world.GetTile(_player.X, _player.Y).Type == TileType.Relic)
+        {
+            _hasFoundRelic = true;
+            _world.SetTile(_player.X, _player.Y, TileType.Floor);
+            _message = "> You found a relic! Return back to the start (+).";
+        }
+
+        return _world.GetTile(_player.X, _player.Y).Type == TileType.Start && _hasFoundRelic;
     }
 
     // Checks if player has lost the game.
     // Conditions:
-    // 1. The player has ran out of energy
+    // 1. The player has run out of energy
     // 2. An NPC has stepped on player's position
     private bool CheckLoseCondition()
     {
+        if (_player.Energy <= 0) return true;
+
+        foreach (var npc in _npcs)
+        {
+            if (npc.X == _player.X && npc.Y == _player.Y)
+            {
+                return true;
+            }
+        }
         return false;
     }
     

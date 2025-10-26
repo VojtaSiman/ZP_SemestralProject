@@ -1,7 +1,9 @@
 namespace zpsem;
 
-public class Renderer
+public static class Renderer
 {
+    private static string _debugMessage = "";
+    
     public static void Clear()
     {
         Console.Clear();
@@ -61,5 +63,49 @@ public class Renderer
         
         Console.ResetColor();
         Console.Write(" | Press Q to quit.");
+    }
+    
+    public static void DrawWinScreen(World world)
+    {
+        string line1 = "▖▖         ▘  ▌";
+        string line2 = "▌▌▛▌▌▌  ▌▌▌▌▛▌▌";
+        string line3 = "▐ ▙▌▙▌  ▚▚▘▌▌▌▖";
+
+        Console.SetCursorPosition(world.Width / 2 - 8, world.Height / 2 - 2);
+        Console.Write(line1);
+        Console.SetCursorPosition(world.Width / 2 - 8, world.Height / 2 - 1);
+        Console.Write(line2);
+        Console.SetCursorPosition(world.Width / 2 - 8, world.Height / 2);
+        Console.Write(line3);
+        
+        Console.SetCursorPosition(0, Console.WindowHeight - 1);
+    }
+
+    public static void DrawGameOverScreen(World world)
+    {
+        string line1 = "▖▖▄▖▖▖  ▄ ▄▖▄▖▄ ";
+        string line2 = "▌▌▌▌▌▌  ▌▌▐ ▙▖▌▌";
+        string line3 = "▐ ▙▌▙▌  ▙▘▟▖▙▖▙▘";
+
+        Console.SetCursorPosition(world.Width / 2 - 8, world.Height / 2 - 2);
+        Console.Write(line1);
+        Console.SetCursorPosition(world.Width / 2 - 8, world.Height / 2 - 1);
+        Console.Write(line2);
+        Console.SetCursorPosition(world.Width / 2 - 8, world.Height / 2);
+        Console.Write(line3);
+        
+        Console.SetCursorPosition(0, Console.WindowHeight - 1);
+    }
+
+    public static void StoreDebugLine(string line)
+    {
+        _debugMessage = line;
+    }
+    
+    public static void DrawDebugLine()
+    {
+        if (_debugMessage == "") return;
+        Console.SetCursorPosition(0, Console.WindowHeight - 5);
+        Console.Write(_debugMessage);
     }
 }
