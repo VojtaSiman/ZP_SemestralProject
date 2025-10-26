@@ -62,7 +62,7 @@ public static class Renderer
         Console.Write(" | Score: " + score);
         
         Console.ResetColor();
-        Console.Write(" | Press Q to quit.");
+        Console.Write(" | Press Q or Esc to quit.");
     }
     
     public static void DrawWinScreen(World world)
