@@ -59,6 +59,7 @@ public class Game
 
     private void ProcessInput()
     {
+        _message = "";
         var key = Console.ReadKey(true).Key;
         var direction = GetMovementDirection(key);
         

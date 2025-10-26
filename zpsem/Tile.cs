@@ -47,6 +47,7 @@ public class Tile
     
     public Tile(TileType type)
     {
+        // IsExplored = true; // Starts with world tiles visible
         Type = type;
         if (type == TileType.Wall)
         {
